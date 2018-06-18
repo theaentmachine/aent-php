@@ -7,6 +7,7 @@ use Symfony\Component\Console\Question\Question;
 use TheAentMachine\AentPhp\EventEnum;
 use TheAentMachine\CommonEvents;
 use TheAentMachine\EventCommand;
+use TheAentMachine\Hermes;
 use TheAentMachine\Pheromone;
 use TheAentMachine\Registry\RegistryClient;
 use TheAentMachine\Service\Service;
@@ -20,9 +21,14 @@ class AddEventCommand extends EventCommand
 
     protected function executeEvent(?string $payload): void
     {
-        $service = new Service();
-
         $helper = $this->getHelper('question');
+
+        $commentEvents = new CommonEvents();
+        Hermes::setDependencies(['theaentmachine/aent-docker-compose:snapshot']);
+
+        $commentEvents->canDispatchServiceOrFail($helper, $this->input, $this->output);
+
+        $service = new Service();
 
         /************************ Service name **********************/
         $question = new Question('Please enter the name of the service [app]: ', 'app');
@@ -111,7 +117,7 @@ class AddEventCommand extends EventCommand
         $this->output->writeln('');
         $this->output->writeln('');
 
-        $service->addBindVolume($appDirectory, '/var/www/html');
+        $service->addBindVolume('/var/www/html', $appDirectory);
 
         /************************ Web application path **********************/
         $webDirectory = null;
@@ -178,7 +184,7 @@ class AddEventCommand extends EventCommand
                     });
                     $volumeName = $helper->ask($this->input, $this->output, $question);
 
-                    $service->addNamedVolume($appDirectory.'/'.$uploadDirectory, $volumeName);
+                    $service->addNamedVolume($volumeName, $appDirectory.'/'.$uploadDirectory);
                 }
             }
         } while ($uploadDirectory !== '');
@@ -233,8 +239,8 @@ class AddEventCommand extends EventCommand
         $memoryLimit = $helper->ask($this->input, $this->output, $question);
         if ($memoryLimit !== '') {
             $this->output->writeln("<info>Memory limit: $memoryLimit</info>");
+            $service->addImageEnvVariable('PHP_INI_MEMORY_LIMIT', $memoryLimit);
         }
-        $service->addImageEnvVariable('PHP_INI_MEMORY_LIMIT', $memoryLimit);
 
         $question = new Question('Please specify the <info>maximum file size for uploaded files</info> (keep empty to stay with the default 2M): ', '');
         $question->setValidator(function (string $value) {
@@ -247,9 +253,9 @@ class AddEventCommand extends EventCommand
         $uploadMaxFileSize = $helper->ask($this->input, $this->output, $question);
         if ($uploadMaxFileSize !== '') {
             $this->output->writeln("<info>Upload maximum file size: $uploadMaxFileSize</info>");
+            $service->addImageEnvVariable('PHP_INI_UPLOAD_MAX_FILESIZE', $uploadMaxFileSize);
+            $service->addImageEnvVariable('PHP_INI_POST_MAX_SIZE', $uploadMaxFileSize);
         }
-        $service->addImageEnvVariable('PHP_INI_UPLOAD_MAX_FILESIZE', $uploadMaxFileSize);
-        $service->addImageEnvVariable('PHP_INI_POST_MAX_SIZE', $uploadMaxFileSize);
 
         $this->output->writeln('');
         $this->output->writeln('');
@@ -275,7 +281,6 @@ class AddEventCommand extends EventCommand
             $service->addInternalPort(80);
         }
 
-        $commentEvents = new CommonEvents();
         $commentEvents->dispatchService($service, $helper, $this->input, $this->output);
     }
 
