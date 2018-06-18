@@ -24,7 +24,6 @@ class AddEventCommand extends EventCommand
         $helper = $this->getHelper('question');
 
         $commentEvents = new CommonEvents();
-        Hermes::setDependencies(['theaentmachine/aent-docker-compose:snapshot']);
 
         $commentEvents->canDispatchServiceOrFail($helper, $this->input, $this->output);
 
