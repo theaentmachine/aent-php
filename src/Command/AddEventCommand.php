@@ -7,7 +7,6 @@ use Symfony\Component\Console\Question\Question;
 use TheAentMachine\AentPhp\EventEnum;
 use TheAentMachine\CommonEvents;
 use TheAentMachine\EventCommand;
-use TheAentMachine\Hermes;
 use TheAentMachine\Pheromone;
 use TheAentMachine\Registry\RegistryClient;
 use TheAentMachine\Service\Service;
@@ -281,6 +280,11 @@ class AddEventCommand extends EventCommand
         }
 
         $commentEvents->dispatchService($service, $helper, $this->input, $this->output);
+
+        // Now, let's configure the reverse proxy
+        if ($variant === 'apache') {
+            $commentEvents->dispatchNewVirtualHost($helper, $this->input, $this->output, $serviceName);
+        }
     }
 
     /**
