@@ -115,7 +115,7 @@ class AddEventCommand extends EventCommand
         $this->output->writeln('');
         $this->output->writeln('');
 
-        $service->addBindVolume('/var/www/html', $appDirectory);
+        $service->addBindVolume('./'.$appDirectory, '/var/www/html');
 
         /************************ Web application path **********************/
         $webDirectory = null;
