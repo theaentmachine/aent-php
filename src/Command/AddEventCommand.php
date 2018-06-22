@@ -18,7 +18,7 @@ class AddEventCommand extends EventCommand
         return EventEnum::ADD;
     }
 
-    protected function executeEvent(?string $payload): void
+    protected function executeEvent(?string $payload): ?string
     {
         $helper = $this->getHelper('question');
 
@@ -285,6 +285,8 @@ class AddEventCommand extends EventCommand
         if ($variant === 'apache') {
             $commentEvents->dispatchNewVirtualHost($helper, $this->input, $this->output, $serviceName);
         }
+
+        return null;
     }
 
     /**
