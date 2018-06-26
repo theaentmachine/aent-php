@@ -211,29 +211,33 @@ class AddEventCommand extends EventCommand
 
         /************************ php.ini settings **********************/
         $this->output->writeln("Now, let's customize some settings of <info>php.ini</info>.");
-        $question = new Question('Please specify the PHP <info>memory limit</info> (keep empty to stay with the default 128M): ', '');
-        $question->setValidator(function (string $value) {
-            if (trim($value) !== '' && !\preg_match('/^[0-9]+([MGK])?$/i', $value)) {
-                throw new \InvalidArgumentException('Invalid value: '.$value);
-            }
 
-            return trim($value);
-        });
-        $memoryLimit = $helper->ask($this->input, $this->output, $question);
+        $memoryLimit = $this->getAentHelper()->question('PHP <info>memory limit</info> (keep empty to stay with the default 128M)')
+            ->setHelpText('This value will be used in the memory_limit option of PHP via the PHP_INI_MEMORY_LIMIT environment variable.')
+            ->setValidator(function (string $value) {
+                if (trim($value) !== '' && !\preg_match('/^[0-9]+([MGK])?$/i', $value)) {
+                    throw new \InvalidArgumentException('Invalid value: '.$value);
+                }
+
+                return trim($value);
+            })
+            ->ask();
         if ($memoryLimit !== '') {
             $this->output->writeln("<info>Memory limit: $memoryLimit</info>");
             $service->addImageEnvVariable('PHP_INI_MEMORY_LIMIT', $memoryLimit);
         }
 
-        $question = new Question('Please specify the <info>maximum file size for uploaded files</info> (keep empty to stay with the default 2M): ', '');
-        $question->setValidator(function (string $value) {
-            if (trim($value) !== '' && !\preg_match('/^[0-9]+([MGK])?$/i', $value)) {
-                throw new \InvalidArgumentException('Invalid value: '.$value);
-            }
+        $uploadMaxFileSize = $this->getAentHelper()->question('<info>Maximum file size for uploaded files</info> (keep empty to stay with the default 2M)')
+            ->setHelpText('This value will be used in the upload_max_file_size and post_max_size options of PHP via the PHP_INI_UPLOAD_MAX_FILESIZE and PHP_INI_POST_MAX_SIZE environment variables.')
+            ->setValidator(function (string $value) {
+                if (trim($value) !== '' && !\preg_match('/^[0-9]+([MGK])?$/i', $value)) {
+                    throw new \InvalidArgumentException('Invalid value: '.$value);
+                }
 
-            return $value;
-        });
-        $uploadMaxFileSize = $helper->ask($this->input, $this->output, $question);
+                return trim($value);
+            })
+            ->ask();
+
         if ($uploadMaxFileSize !== '') {
             $this->output->writeln("<info>Upload maximum file size: $uploadMaxFileSize</info>");
             $service->addImageEnvVariable('PHP_INI_UPLOAD_MAX_FILESIZE', $uploadMaxFileSize);
@@ -243,7 +247,6 @@ class AddEventCommand extends EventCommand
         $this->output->writeln('');
         $this->output->writeln('');
         $this->output->writeln('Does your service depends on another service to start? For instance a "mysql" instance?');
-        $depends = [];
         do {
             $question = new Question('Please input a service name your application depends on (keep empty to skip) : ', '');
 
