@@ -90,7 +90,7 @@ class AddEventCommand extends EventCommand
         $this->output->writeln('Now, we need to find the root of your web application.');
         $appDirectory = $this->getAentHelper()->question('PHP application root directory (relative to the project root directory)')
             ->setHelpText('Your PHP application root directory is typically the directory that contains your composer.json file. It must be relative to the project root directory.')
-            ->setValidator(function(string $appDirectory) {
+            ->setValidator(function (string $appDirectory) {
                 $appDirectory = trim($appDirectory, '/') ?: '.';
                 $rootDir = Pheromone::getContainerProjectDirectory();
 
@@ -115,7 +115,7 @@ class AddEventCommand extends EventCommand
             if ($answer) {
                 $webDirectory = $this->getAentHelper()->question('Web directory (relative to the PHP application directory)')
                     ->setHelpText('Your PHP application web directory is typically the directory that contains your index.php file. It must be relative to the PHP application directory ('.Pheromone::getHostProjectDirectory().'/'.$appDirectory.')')
-                    ->setValidator(function(string $webDirectory) use ($appDirectory) {
+                    ->setValidator(function (string $webDirectory) use ($appDirectory) {
                         $webDirectory = trim($webDirectory, '/') ?: '.';
                         $rootDir = Pheromone::getContainerProjectDirectory();
 
@@ -307,7 +307,7 @@ class AddEventCommand extends EventCommand
 
         rsort($phpVersions);
         sort($variants);
-        rsort($nodeVersions,SORT_NUMERIC);
+        rsort($nodeVersions, SORT_NUMERIC);
 
         return [
             'phpVersions' => $phpVersions,

@@ -39,7 +39,8 @@
     "cs-fix": "phpcbf",
     "cs-check": "phpcs",
     "phpstan": "phpstan analyse src -c phpstan.neon --level=7 --no-progress -vvv",
-    "phpunit": "phpunit --configuration phpunit.xml.dist"
+    "phpunit": "phpunit --configuration phpunit.xml.dist",
+    "ci": [ "@cs-check", "@phpstan", "@phpunit" ]
   },
   "minimum-stability": "dev",
   "prefer-stable": true
