@@ -29,17 +29,7 @@ class AddEventCommand extends EventCommand
         $service = new Service();
 
         /************************ Service name **********************/
-        $question = new Question('Please enter the name of the service [app]: ', 'app');
-        $question->setValidator(function (string $value) {
-            $value = trim($value);
-            if (!\preg_match('/^[a-zA-Z0-9_.-]+$/', $value)) {
-                throw new \InvalidArgumentException('Invalid service name "'.$value.'". Service names can contain alphanumeric characters, and "_", ".", "-".');
-            }
-
-            return $value;
-        });
-
-        $serviceName = $helper->ask($this->input, $this->output, $question);
+        $serviceName = $this->getAentHelper()->askForServiceName('app', 'Your PHP application');
         $this->output->writeln("<info>You are about to create a '$serviceName' PHP container</info>");
         $service->setServiceName($serviceName);
 
@@ -97,20 +87,20 @@ class AddEventCommand extends EventCommand
 
 
         /************************ Root application path **********************/
-        do {
-            $this->output->writeln('Now, we need to find the root of your web application. This is typically the directory that contains your composer.json file.');
-            $question = new Question('What is your PHP application root directory? (relative to the project root directory): ', '');
-            $appDirectory = $helper->ask($this->input, $this->output, $question);
+        $this->output->writeln('Now, we need to find the root of your web application.');
+        $appDirectory = $this->getAentHelper()->question('PHP application root directory (relative to the project root directory)')
+            ->setHelpText('Your PHP application root directory is typically the directory that contains your composer.json file. It must be relative to the project root directory.')
+            ->setValidator(function(string $appDirectory) {
+                $appDirectory = trim($appDirectory, '/') ?: '.';
+                $rootDir = Pheromone::getContainerProjectDirectory();
 
-            $appDirectory = trim($appDirectory, '/') ?: '.';
-            $rootDir = Pheromone::getContainerProjectDirectory();
+                $fullDir = $rootDir.'/'.$appDirectory;
+                if (!is_dir($fullDir)) {
+                    throw new \InvalidArgumentException('Could not find directory '.Pheromone::getHostProjectDirectory().'/'.$appDirectory);
+                }
+                return $appDirectory;
+            })->ask();
 
-            $fullDir = $rootDir.'/'.$appDirectory;
-            if (!is_dir($fullDir)) {
-                $this->output->writeln('<error>Could not find directory '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'</error>');
-                $appDirectory = null;
-            }
-        } while ($appDirectory === null);
         $this->output->writeln('<info>Your root PHP application directory is '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'</info>');
         $this->output->writeln('');
         $this->output->writeln('');
@@ -120,26 +110,21 @@ class AddEventCommand extends EventCommand
         /************************ Web application path **********************/
         $webDirectory = null;
         if ($variant === 'apache') {
-            $question = new ChoiceQuestion(
-                'Do you have a public web folder that is not the root of your application? [Yes] ',
-                array('Yes', 'No'),
-                0
-            );
-            $answer = $helper->ask($this->input, $this->output, $question);
-            if ($answer === 'Yes') {
-                do {
-                    $question = new Question('What is your PHP application web directory? (relative to the PHP project directory): ', '');
-                    $webDirectory = $helper->ask($this->input, $this->output, $question);
+            $answer = $this->getAentHelper()->question('Do you have a public web folder that is not the root of your application?')
+                ->yesNoQuestion()->setDefault('y')->ask();
+            if ($answer) {
+                $webDirectory = $this->getAentHelper()->question('Web directory (relative to the PHP application directory)')
+                    ->setHelpText('Your PHP application web directory is typically the directory that contains your index.php file. It must be relative to the PHP application directory ('.Pheromone::getHostProjectDirectory().'/'.$appDirectory.')')
+                    ->setValidator(function(string $webDirectory) use ($appDirectory) {
+                        $webDirectory = trim($webDirectory, '/') ?: '.';
+                        $rootDir = Pheromone::getContainerProjectDirectory();
 
-                    $webDirectory = trim($webDirectory, '/') ?: '.';
-                    $rootDir = Pheromone::getContainerProjectDirectory();
-
-                    $fullDir = $rootDir.'/'.$appDirectory.'/'.$webDirectory;
-                    if (!is_dir($fullDir)) {
-                        $this->output->writeln('<error>Could not find directory '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'/'.$webDirectory.'</error>');
-                        $webDirectory = null;
-                    }
-                } while ($webDirectory === null);
+                        $fullDir = $rootDir.'/'.$appDirectory.'/'.$webDirectory;
+                        if (!is_dir($fullDir)) {
+                            throw new \InvalidArgumentException('Could not find directory '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'/'.$webDirectory);
+                        }
+                        return $webDirectory;
+                    })->ask();
 
                 $service->addImageEnvVariable('APACHE_DOCUMENT_ROOT', $webDirectory);
                 $this->output->writeln('<info>Your web directory is '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'/'.$webDirectory.'</info>');
@@ -316,10 +301,18 @@ class AddEventCommand extends EventCommand
             }
         }
 
+        $phpVersions = \array_keys($phpVersions);
+        $variants = \array_keys($variants);
+        $nodeVersions = \array_keys($nodeVersions);
+
+        rsort($phpVersions);
+        sort($variants);
+        rsort($nodeVersions,SORT_NUMERIC);
+
         return [
-            'phpVersions' => \array_keys($phpVersions),
-            'variants' => \array_keys($variants),
-            'nodeVersions' => \array_keys($nodeVersions),
+            'phpVersions' => $phpVersions,
+            'variants' => $variants,
+            'nodeVersions' => $nodeVersions,
         ];
     }
 }
