@@ -5,8 +5,8 @@
 			"handled_events": [
 				"ADD",
 				"REMOVE",
-				"NEW_DOCKER_SERVICE_INFO",
-				"DELETE_DOCKER_SERVICE"
+				"NEW_SERVICE",
+				"DELETE_SERVICE"
 			]
 		},
 		{

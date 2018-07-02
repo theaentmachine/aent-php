@@ -4,7 +4,6 @@ namespace TheAentMachine\AentPhp\Command;
 
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\Question;
-use TheAentMachine\AentPhp\EventEnum;
 use TheAentMachine\CommonEvents;
 use TheAentMachine\EventCommand;
 use TheAentMachine\Pheromone;
@@ -15,21 +14,25 @@ class AddEventCommand extends EventCommand
 {
     protected function getEventName(): string
     {
-        return EventEnum::ADD;
+        return 'ADD';
     }
 
+    /**
+     * @throws \TheAentMachine\Exception\CannotHandleEventException
+     */
     protected function executeEvent(?string $payload): ?string
     {
         $helper = $this->getHelper('question');
 
-        $commentEvents = new CommonEvents();
+        $aentHelper = $this->getAentHelper();
+        $commentEvents = new CommonEvents($aentHelper, $this->output);
 
-        $commentEvents->canDispatchServiceOrFail($helper, $this->input, $this->output);
+        $commentEvents->canDispatchServiceOrFail();
 
         $service = new Service();
 
         /************************ Service name **********************/
-        $serviceName = $this->getAentHelper()->askForServiceName('app', 'Your PHP application');
+        $serviceName = $aentHelper->askForServiceName('app', 'Your PHP application');
         $this->output->writeln("<info>You are about to create a '$serviceName' PHP container</info>");
         $service->setServiceName($serviceName);
 
@@ -48,8 +51,8 @@ class AddEventCommand extends EventCommand
         );
         $phpVersion = $helper->ask($this->input, $this->output, $question);
         $this->output->writeln("<info>You are about to install PHP $phpVersion</info>");
-        $this->output->writeln('');
-        $this->output->writeln('');
+        $aentHelper->spacer();
+        $aentHelper->spacer();
 
 
         $question = new ChoiceQuestion(
@@ -59,8 +62,8 @@ class AddEventCommand extends EventCommand
         );
         $variant = $helper->ask($this->input, $this->output, $question);
         $this->output->writeln("<info>You selected the $variant variant</info>");
-        $this->output->writeln('');
-        $this->output->writeln('');
+        $aentHelper->spacer();
+        $aentHelper->spacer();
 
         $question = new ChoiceQuestion(
             'Do you want to install NodeJS :',
@@ -71,10 +74,10 @@ class AddEventCommand extends EventCommand
         if ($node !== 'No') {
             $this->output->writeln("<info>The image will also contain $node</info>");
         } else {
-            $this->output->writeln("<info>The image will not contain NodeJS</info>");
+            $this->output->writeln('<info>The image will not contain NodeJS</info>');
         }
-        $this->output->writeln('');
-        $this->output->writeln('');
+        $aentHelper->spacer();
+        $aentHelper->spacer();
 
         if ($node === 'No') {
             $node = '';
@@ -88,7 +91,7 @@ class AddEventCommand extends EventCommand
 
         /************************ Root application path **********************/
         $this->output->writeln('Now, we need to find the root of your web application.');
-        $appDirectory = $this->getAentHelper()->question('PHP application root directory (relative to the project root directory)')
+        $appDirectory = $aentHelper->question('PHP application root directory (relative to the project root directory)')
             ->setHelpText('Your PHP application root directory is typically the directory that contains your composer.json file. It must be relative to the project root directory.')
             ->setValidator(function (string $appDirectory) {
                 $appDirectory = trim($appDirectory, '/') ?: '.';
@@ -102,18 +105,18 @@ class AddEventCommand extends EventCommand
             })->ask();
 
         $this->output->writeln('<info>Your root PHP application directory is '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'</info>');
-        $this->output->writeln('');
-        $this->output->writeln('');
+        $aentHelper->spacer();
+        $aentHelper->spacer();
 
         $service->addBindVolume('./'.$appDirectory, '/var/www/html');
 
         /************************ Web application path **********************/
         $webDirectory = null;
         if ($variant === 'apache') {
-            $answer = $this->getAentHelper()->question('Do you have a public web folder that is not the root of your application?')
+            $answer = $aentHelper->question('Do you have a public web folder that is not the root of your application?')
                 ->yesNoQuestion()->setDefault('y')->ask();
             if ($answer) {
-                $webDirectory = $this->getAentHelper()->question('Web directory (relative to the PHP application directory)')
+                $webDirectory = $aentHelper->question('Web directory (relative to the PHP application directory)')
                     ->setHelpText('Your PHP application web directory is typically the directory that contains your index.php file. It must be relative to the PHP application directory ('.Pheromone::getHostProjectDirectory().'/'.$appDirectory.')')
                     ->setValidator(function (string $webDirectory) use ($appDirectory) {
                         $webDirectory = trim($webDirectory, '/') ?: '.';
@@ -128,8 +131,8 @@ class AddEventCommand extends EventCommand
 
                 $service->addImageEnvVariable('APACHE_DOCUMENT_ROOT', $webDirectory);
                 $this->output->writeln('<info>Your web directory is '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'/'.$webDirectory.'</info>');
-                $this->output->writeln('');
-                $this->output->writeln('');
+                $aentHelper->spacer();
+                $aentHelper->spacer();
             }
         }
 
@@ -137,7 +140,7 @@ class AddEventCommand extends EventCommand
         $this->output->writeln('Now, we need to know if there are directories you want to store <info>out of the container</info>.');
         $this->output->writeln('When a container is removed, anything in it is lost. If your application is letting users upload files, or if it generates files, it might be important to <comment>store those files out of the container</comment>.');
         $this->output->writeln('If you want to mount such a directory out of the container, please specify the directory path below. Path must be relative to the PHP application root directory.');
-        $this->output->writeln('');
+        $aentHelper->spacer();
 
         $uploadDirs = [];
         do {
@@ -171,8 +174,8 @@ class AddEventCommand extends EventCommand
                 }
             }
         } while ($uploadDirectory !== '');
-        $this->output->writeln('');
-        $this->output->writeln('');
+        $aentHelper->spacer();
+        $aentHelper->spacer();
 
         $availableExtensions = ['amqp', 'ast', 'bcmath', 'bz2', 'calendar', 'dba', 'enchant', 'ev', 'event', 'exif',
             'gd', 'gettext', 'gmp', 'igbinary', 'imap', 'intl', 'ldap', 'mcrypt', 'memcached', 'mongodb', 'pcntl',
@@ -205,14 +208,14 @@ class AddEventCommand extends EventCommand
             }
         } while ($extension !== '');
         $this->output->writeln('<info>Enabled extensions: apcu mysqli opcache pdo pdo_mysql redis zip soap mbstring ftp mysqlnd '.\implode(' ', $extensions).'</info>');
-        $this->output->writeln('');
-        $this->output->writeln('');
+        $aentHelper->spacer();
+        $aentHelper->spacer();
 
 
         /************************ php.ini settings **********************/
         $this->output->writeln("Now, let's customize some settings of <info>php.ini</info>.");
 
-        $memoryLimit = $this->getAentHelper()->question('PHP <info>memory limit</info> (keep empty to stay with the default 128M)')
+        $memoryLimit = $aentHelper->question('PHP <info>memory limit</info> (keep empty to stay with the default 128M)')
             ->setHelpText('This value will be used in the memory_limit option of PHP via the PHP_INI_MEMORY_LIMIT environment variable.')
             ->setValidator(function (string $value) {
                 if (trim($value) !== '' && !\preg_match('/^[0-9]+([MGK])?$/i', $value)) {
@@ -227,7 +230,7 @@ class AddEventCommand extends EventCommand
             $service->addImageEnvVariable('PHP_INI_MEMORY_LIMIT', $memoryLimit);
         }
 
-        $uploadMaxFileSize = $this->getAentHelper()->question('<info>Maximum file size for uploaded files</info> (keep empty to stay with the default 2M)')
+        $uploadMaxFileSize = $aentHelper->question('<info>Maximum file size for uploaded files</info> (keep empty to stay with the default 2M)')
             ->setHelpText('This value will be used in the upload_max_file_size and post_max_size options of PHP via the PHP_INI_UPLOAD_MAX_FILESIZE and PHP_INI_POST_MAX_SIZE environment variables.')
             ->setValidator(function (string $value) {
                 if (trim($value) !== '' && !\preg_match('/^[0-9]+([MGK])?$/i', $value)) {
@@ -244,8 +247,8 @@ class AddEventCommand extends EventCommand
             $service->addImageEnvVariable('PHP_INI_POST_MAX_SIZE', $uploadMaxFileSize);
         }
 
-        $this->output->writeln('');
-        $this->output->writeln('');
+        $aentHelper->spacer();
+        $aentHelper->spacer();
         $this->output->writeln('Does your service depends on another service to start? For instance a "mysql" instance?');
         do {
             $question = new Question('Please input a service name your application depends on (keep empty to skip) : ', '');
@@ -257,8 +260,8 @@ class AddEventCommand extends EventCommand
                 $this->output->writeln('<info>Added dependency: '.$depend.'</info>');
             }
         } while ($depend !== '');
-        $this->output->writeln('');
-        $this->output->writeln('');
+        $aentHelper->spacer();
+        $aentHelper->spacer();
 
 
         // TODO: propose to run composer install on startup?
@@ -267,11 +270,11 @@ class AddEventCommand extends EventCommand
             $service->addInternalPort(80);
         }
 
-        $commentEvents->dispatchService($service, $helper, $this->input, $this->output);
+        $commentEvents->dispatchService($service);
 
         // Now, let's configure the reverse proxy
         if ($variant === 'apache') {
-            $commentEvents->dispatchNewVirtualHost($helper, $this->input, $this->output, $serviceName);
+            $commentEvents->dispatchNewVirtualHost($serviceName);
         }
 
         return null;
