@@ -111,7 +111,6 @@ class AddEventCommand extends EventCommand
         $service->addBindVolume('./'.$appDirectory, '/var/www/html');
 
         /************************ Web application path **********************/
-        $webDirectory = null;
         if ($variant === 'apache') {
             $answer = $aentHelper->question('Do you have a public web folder that is not the root of your application?')
                 ->yesNoQuestion()->setDefault('y')->ask();
