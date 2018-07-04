@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "e31adc972e949523bbaed806a77fbfa0",
+    "content-hash": "d25c83717e7c0ffeb9da2b0728da788d",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -741,12 +741,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/theaentmachine/aent-console.git",
-                "reference": "fdda8666eddb352e4a77d0c9649aef36f55d28b0"
+                "reference": "a50ad63a1c8d3ebee68ecb1f4379334eb85447d6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/theaentmachine/aent-console/zipball/fdda8666eddb352e4a77d0c9649aef36f55d28b0",
-                "reference": "fdda8666eddb352e4a77d0c9649aef36f55d28b0",
+                "url": "https://api.github.com/repos/theaentmachine/aent-console/zipball/a50ad63a1c8d3ebee68ecb1f4379334eb85447d6",
+                "reference": "a50ad63a1c8d3ebee68ecb1f4379334eb85447d6",
                 "shasum": ""
             },
             "require": {
@@ -761,10 +761,10 @@
                 "symfony/yaml": "^4.0"
             },
             "require-dev": {
-                "phpstan/phpstan": "^0.10",
+                "phpstan/phpstan": "^0.10.1",
                 "phpunit/phpunit": "^7",
                 "squizlabs/php_codesniffer": "^3.2",
-                "thecodingmachine/phpstan-strict-rules": "^0.10"
+                "thecodingmachine/phpstan-strict-rules": "^0.10.1"
             },
             "type": "library",
             "extra": {
@@ -800,7 +800,7 @@
             ],
             "description": "A utility PHP package to create Aents using Symfony console.",
             "homepage": "https://github.com/theaentmachine/aent-console",
-            "time": "2018-06-29T13:07:55+00:00"
+            "time": "2018-07-04T15:40:05+00:00"
         }
     ],
     "packages-dev": [
@@ -2343,106 +2343,6 @@
             "time": "2018-06-21T13:13:39+00:00"
         },
         {
-            "name": "roave/better-reflection",
-            "version": "3.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Roave/BetterReflection.git",
-                "reference": "5a5570d84cdc021318cabe6a599d38cb199da7e7"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Roave/BetterReflection/zipball/5a5570d84cdc021318cabe6a599d38cb199da7e7",
-                "reference": "5a5570d84cdc021318cabe6a599d38cb199da7e7",
-                "shasum": ""
-            },
-            "require": {
-                "nikic/php-parser": "^4.0.0",
-                "php": ">=7.1.0,<7.3.0",
-                "phpdocumentor/reflection-docblock": "^4.1.1",
-                "phpdocumentor/type-resolver": "^0.4.0",
-                "roave/signature": "^1.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^7.0.0"
-            },
-            "suggest": {
-                "composer/composer": "Required to use the ComposerSourceLocator"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "4.0-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Roave\\BetterReflection\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "James Titcumb",
-                    "email": "james@asgrim.com",
-                    "homepage": "https://github.com/asgrim"
-                },
-                {
-                    "name": "Gary Hockin",
-                    "email": "gary@roave.com",
-                    "homepage": "https://github.com/geeh"
-                },
-                {
-                    "name": "Jaroslav Hanslík",
-                    "email": "kukulich@kukulich.cz",
-                    "homepage": "https://github.com/kukulich"
-                },
-                {
-                    "name": "Marco Pivetta",
-                    "email": "ocramius@gmail.com",
-                    "homepage": "https://ocramius.github.io/"
-                }
-            ],
-            "description": "Better Reflection - an improved code reflection API",
-            "time": "2018-05-26T12:32:26+00:00"
-        },
-        {
-            "name": "roave/signature",
-            "version": "1.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Roave/Signature.git",
-                "reference": "bed4ecbdd7f312ab6bb39561ac191f520bcee386"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Roave/Signature/zipball/bed4ecbdd7f312ab6bb39561ac191f520bcee386",
-                "reference": "bed4ecbdd7f312ab6bb39561ac191f520bcee386",
-                "shasum": ""
-            },
-            "require": {
-                "php": "^7.0|^7.1"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^5.6"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Roave\\Signature\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "description": "Sign and verify stuff",
-            "time": "2017-02-17T13:53:21+00:00"
-        },
-        {
             "name": "sebastian/code-unit-reverse-lookup",
             "version": "1.0.1",
             "source": {
@@ -3058,22 +2958,21 @@
         },
         {
             "name": "thecodingmachine/phpstan-strict-rules",
-            "version": "v0.10.0",
+            "version": "v0.10.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thecodingmachine/phpstan-strict-rules.git",
-                "reference": "985ca9045644c755e81462c7947bbb804ad1b030"
+                "reference": "e0892ef023f85c2926b59e253891520196136157"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thecodingmachine/phpstan-strict-rules/zipball/985ca9045644c755e81462c7947bbb804ad1b030",
-                "reference": "985ca9045644c755e81462c7947bbb804ad1b030",
+                "url": "https://api.github.com/repos/thecodingmachine/phpstan-strict-rules/zipball/e0892ef023f85c2926b59e253891520196136157",
+                "reference": "e0892ef023f85c2926b59e253891520196136157",
                 "shasum": ""
             },
             "require": {
                 "php": "^7.1",
-                "phpstan/phpstan": "^0.10",
-                "roave/better-reflection": "^3.0"
+                "phpstan/phpstan": "^0.10"
             },
             "require-dev": {
                 "php-coveralls/php-coveralls": "^2.1",
@@ -3101,7 +3000,7 @@
                 }
             ],
             "description": "A set of additional rules for PHPStan based on best practices followed at TheCodingMachine",
-            "time": "2018-06-25T15:49:37+00:00"
+            "time": "2018-07-04T13:39:13+00:00"
         },
         {
             "name": "theseer/tokenizer",
