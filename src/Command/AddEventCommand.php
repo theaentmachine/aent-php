@@ -270,6 +270,7 @@ class AddEventCommand extends EventCommand
         }
 
         $commentEvents->dispatchService($service);
+        $commentEvents->dispatchImage($service);
 
         // Now, let's configure the reverse proxy
         if ($variant === 'apache') {
