@@ -8,8 +8,7 @@
     "name" : "David Négrier",
     "email" : "d.negrier@thecodingmachine.com",
     "homepage" : "https://thecodingmachine.io"
-  }
-  ],
+  }],
   "require" : {
     "php" : ">=7.1",
     "theaentmachine/aent-console": "^1"
