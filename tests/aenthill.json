@@ -1,19 +1,2 @@
 {
-	"aents": [
-		{
-			"image": "theaentmachine/aent-docker-compose",
-			"handled_events": [
-				"ADD",
-				"REMOVE",
-				"NEW_SERVICE",
-				"DELETE_SERVICE"
-			]
-		},
-		{
-			"image": "theaentmachine/aent-php",
-			"handled_events": [
-				"ADD"
-			]
-		}
-	]
 }

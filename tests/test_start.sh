@@ -14,4 +14,4 @@ docker run -v $(pwd)/..:/app \
     -e PHEROMONE_LOG_LEVEL=DEBUG \
     -ti \
     theaentmachine/base-php-aent:0.0.12 \
-    php /app/src/aent.php ADD
+    php /app/src/aent.php START
