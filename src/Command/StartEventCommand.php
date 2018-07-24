@@ -18,14 +18,12 @@ class StartEventCommand extends EventCommand
 
     protected function executeEvent(?string $payload): ?string
     {
+        $this->getAentHelper()->title('Adding a new PHP service');
+        
         $commentEvents = new CommonEvents($this->getAentHelper(), $this->output);
 
         /************************ Environments **********************/
         $environments = $this->getAentHelper()->askForEnvironments();
-        if (empty($environments)) {
-            $this->output->writeln("<error>No environments available, did you forget to install an aent like theaentmachine/aent-docker-compose?</error>");
-            return null;
-        }
 
         $service = new Service();
 
@@ -49,8 +47,6 @@ class StartEventCommand extends EventCommand
             ->setDefault('0')
             ->ask();
         $this->output->writeln("<info>You are about to install PHP $phpVersion</info>");
-        $this->getAentHelper()->spacer();
-
 
         $variant = $this->getAentHelper()
             ->choiceQuestion(
@@ -60,7 +56,6 @@ class StartEventCommand extends EventCommand
             ->setDefault('0')
             ->ask();
         $this->output->writeln("<info>You selected the $variant variant</info>");
-        $this->getAentHelper()->spacer();
 
         $node = $this->getAentHelper()
             ->question('Do you want to install NodeJS?')
@@ -79,7 +74,6 @@ class StartEventCommand extends EventCommand
                 ->ask();
             $this->output->writeln("<info>You selected the version $node</info>");
             $node = '-' . $node;
-            $this->getAentHelper()->spacer();
         } else {
             $this->output->writeln('<info>The image will not contain NodeJS</info>');
         }
@@ -102,7 +96,6 @@ class StartEventCommand extends EventCommand
             })->ask();
 
         $this->output->writeln('<info>Your root PHP application directory is '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'</info>');
-        $this->getAentHelper()->spacer();
 
         $service->addBindVolume('./'.$appDirectory, '/var/www/html');
 
@@ -123,10 +116,8 @@ class StartEventCommand extends EventCommand
                         }
                         return $webDirectory;
                     })->ask();
-
                 $service->addImageEnvVariable('APACHE_DOCUMENT_ROOT', $webDirectory);
                 $this->output->writeln('<info>Your web directory is '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'/'.$webDirectory.'</info>');
-                $this->getAentHelper()->spacer();
             }
         }
 
@@ -134,7 +125,6 @@ class StartEventCommand extends EventCommand
         $this->output->writeln('Now, we need to know if there are directories you want to store <info>out of the container</info>.');
         $this->output->writeln('When a container is removed, anything in it is lost. If your application is letting users upload files, or if it generates files, it might be important to <comment>store those files out of the container</comment>.');
         $this->output->writeln('If you want to mount such a directory out of the container, please specify the directory path below. Path must be relative to the PHP application root directory.');
-        $this->getAentHelper()->spacer();
 
         $uploadDirs = [];
         do {
@@ -142,10 +132,8 @@ class StartEventCommand extends EventCommand
                 ->question('Please input directory (for instance for file uploads) that you want to mount out of the container? (keep empty to ignore)')
                 ->setDefault('')
                 ->ask();
-
             $uploadDirectory = trim($uploadDirectory, '/');
             $rootDir = Pheromone::getContainerProjectDirectory();
-
             if ($uploadDirectory !== '') {
                 $fullDir = $rootDir.'/'.$appDirectory.'/'.$uploadDirectory;
                 if (!is_dir($fullDir)) {
@@ -164,7 +152,6 @@ class StartEventCommand extends EventCommand
                             if (!\preg_match('/^[a-zA-Z0-9_.-]+$/', $value)) {
                                 throw new \InvalidArgumentException('Invalid volume name "' . $value . '". Volume names can contain alphanumeric characters, and "_", ".", "-".');
                             }
-
                             return $value;
                         })
                         ->ask();
@@ -174,15 +161,12 @@ class StartEventCommand extends EventCommand
                         if (!\preg_match('/^[a-zA-Z0-9_.-]+$/', $value)) {
                             throw new \InvalidArgumentException('Invalid volume name "'.$value.'". Volume names can contain alphanumeric characters, and "_", ".", "-".');
                         }
-
                         return $value;
                     });
-
                     $service->addNamedVolume($volumeName, $appDirectory.'/'.$uploadDirectory);
                 }
             }
         } while ($uploadDirectory !== '');
-        $this->getAentHelper()->spacer();
 
         $availableExtensions = ['amqp', 'ast', 'bcmath', 'bz2', 'calendar', 'dba', 'enchant', 'ev', 'event', 'exif',
             'gd', 'gettext', 'gmp', 'igbinary', 'imap', 'intl', 'ldap', 'mcrypt', 'memcached', 'mongodb', 'pcntl',
@@ -203,20 +187,15 @@ class StartEventCommand extends EventCommand
                 if (trim($value) !== '' && !\in_array($value, $availableExtensions)) {
                     throw new \InvalidArgumentException('Unknown extension '.$value);
                 }
-
                 return trim($value);
             });
-
             $extension = $this->getHelper('question')->ask($this->input, $this->output, $question);
-
             if ($extension !== '') {
                 $service->addImageEnvVariable('PHP_EXTENSION_'.\strtoupper($extension), '1');
                 $extensions[] = $extension;
             }
         } while ($extension !== '');
         $this->output->writeln('<info>Enabled extensions: apcu mysqli opcache pdo pdo_mysql redis zip soap mbstring ftp mysqlnd '.\implode(' ', $extensions).'</info>');
-        $this->getAentHelper()->spacer();
-
 
         /************************ php.ini settings **********************/
         $this->output->writeln("Now, let's customize some settings of <info>php.ini</info>.");
@@ -227,7 +206,6 @@ class StartEventCommand extends EventCommand
                 if (trim($value) !== '' && !\preg_match('/^[0-9]+([MGK])?$/i', $value)) {
                     throw new \InvalidArgumentException('Invalid value: '.$value);
                 }
-
                 return trim($value);
             })
             ->ask();
@@ -242,7 +220,6 @@ class StartEventCommand extends EventCommand
                 if (trim($value) !== '' && !\preg_match('/^[0-9]+([MGK])?$/i', $value)) {
                     throw new \InvalidArgumentException('Invalid value: '.$value);
                 }
-
                 return trim($value);
             })
             ->ask();
@@ -252,7 +229,6 @@ class StartEventCommand extends EventCommand
             $service->addImageEnvVariable('PHP_INI_UPLOAD_MAX_FILESIZE', $uploadMaxFileSize);
             $service->addImageEnvVariable('PHP_INI_POST_MAX_SIZE', $uploadMaxFileSize);
         }
-        $this->getAentHelper()->spacer();
 
         $this->output->writeln('Does your service depends on another service to start? For instance a "mysql" instance?');
         do {
@@ -260,28 +236,24 @@ class StartEventCommand extends EventCommand
                 ->question('Please input a service name your application depends on (keep empty to skip)')
                 ->setDefault('')
                 ->ask();
-
             if ($depend !== '') {
                 $service->addDependsOn($depend);
                 $this->output->writeln('<info>Added dependency: '.$depend.'</info>');
             }
         } while ($depend !== '');
-        $this->getAentHelper()->spacer();
+        
 
 
         // TODO: propose to run composer install on startup?
 
         if ($variant === 'apache') {
             $service->addInternalPort(80);
+            $service->setNeedVirtualHost(true);
+            // $commentEvents->dispatchNewVirtualHost($serviceName);
         }
 
         $commentEvents->dispatchService($service);
-        $commentEvents->dispatchImage($service);
-
-        // Now, let's configure the reverse proxy
-        if ($variant === 'apache') {
-            $commentEvents->dispatchNewVirtualHost($serviceName);
-        }
+        // $commentEvents->dispatchImage($service);
 
         return null;
     }
