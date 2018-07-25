@@ -3,6 +3,7 @@
 namespace TheAentMachine\AentPhp\Command;
 
 use Symfony\Component\Console\Question\Question;
+use TheAentMachine\Aenthill\Metadata;
 use TheAentMachine\CommonEvents;
 use TheAentMachine\Command\EventCommand;
 use TheAentMachine\Aenthill\Pheromone;
@@ -16,6 +17,9 @@ class StartEventCommand extends EventCommand
         return 'START';
     }
 
+    /**
+     * @throws \TheAentMachine\Exception\MissingEnvironmentVariableException
+     */
     protected function executeEvent(?string $payload): ?string
     {
         $this->getAentHelper()->title('Adding a new PHP service');
@@ -24,8 +28,12 @@ class StartEventCommand extends EventCommand
 
         /************************ Environments **********************/
         $environments = $this->getAentHelper()->askForEnvironments();
-
         $service = new Service();
+        if (null !== $environments) {
+            foreach ($environments as $env) {
+                $service->addDestEnvType($env[Metadata::ENV_TYPE_KEY]);
+            }
+        }
 
         /************************ Service name **********************/
         $serviceName = $this->getAentHelper()->askForServiceName('app', 'Your PHP application');
