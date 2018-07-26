@@ -3,40 +3,42 @@
 namespace TheAentMachine\AentPhp\Command;
 
 use Symfony\Component\Console\Question\Question;
-use TheAentMachine\Aenthill\Metadata;
-use TheAentMachine\CommonEvents;
-use TheAentMachine\Command\EventCommand;
+use TheAentMachine\Aenthill\CommonMetadata;
+use TheAentMachine\Aenthill\CommonEvents;
+use TheAentMachine\Command\AbstractEventCommand;
 use TheAentMachine\Aenthill\Pheromone;
+use TheAentMachine\Question\CommonValidators;
 use TheAentMachine\Registry\RegistryClient;
 use TheAentMachine\Service\Service;
 
-class StartEventCommand extends EventCommand
+class StartEventCommand extends AbstractEventCommand
 {
     protected function getEventName(): string
     {
-        return 'START';
+        return CommonEvents::START_EVENT;
     }
 
     /**
+     * @param null|string $payload
+     * @return null|string
+     * @throws \TheAentMachine\Exception\CommonAentsException
      * @throws \TheAentMachine\Exception\MissingEnvironmentVariableException
      */
     protected function executeEvent(?string $payload): ?string
     {
         $this->getAentHelper()->title('Adding a new PHP service');
-        
-        $commentEvents = new CommonEvents($this->getAentHelper(), $this->output);
 
         /************************ Environments **********************/
-        $environments = $this->getAentHelper()->askForEnvironments();
+        $environments = $this->getAentHelper()->getCommonQuestions()->askForEnvironments();
         $service = new Service();
         if (null !== $environments) {
             foreach ($environments as $env) {
-                $service->addDestEnvType($env[Metadata::ENV_TYPE_KEY]);
+                $service->addDestEnvType($env[CommonMetadata::ENV_TYPE_KEY]);
             }
         }
 
         /************************ Service name **********************/
-        $serviceName = $this->getAentHelper()->askForServiceName('app', 'Your PHP application');
+        $serviceName = $this->getAentHelper()->getCommonQuestions()->askForServiceName('app', 'Your PHP application');
         $this->output->writeln("<info>You are about to create a '$serviceName' PHP container</info>");
         $service->setServiceName($serviceName);
 
@@ -72,7 +74,7 @@ class StartEventCommand extends EventCommand
             ->ask();
 
         if ($node) {
-            $this->output->writeln("<info>The image will also contain NodeJS</info>");
+            $this->output->writeln('<info>The image will also contain NodeJS</info>');
             $node = $this->getAentHelper()
                 ->choiceQuestion(
                     'NodeJS version',
@@ -153,24 +155,11 @@ class StartEventCommand extends EventCommand
 
                     $volumeName = $this->getAentHelper()
                         ->question('Please input directory (for instance for file uploads) that you want to mount out of the container? (keep empty to ignore)')
-                        ->setDefault('')
                         ->compulsory()
-                        ->setValidator(function (string $value) {
-                            $value = trim($value);
-                            if (!\preg_match('/^[a-zA-Z0-9_.-]+$/', $value)) {
-                                throw new \InvalidArgumentException('Invalid volume name "' . $value . '". Volume names can contain alphanumeric characters, and "_", ".", "-".');
-                            }
-                            return $value;
-                        })
+                        ->setValidator(CommonValidators::getAlphaValidator(['_', '.', '-']))
                         ->ask();
                     $question = new Question('What name should we use for this volume? ', '');
-                    $question->setValidator(function (string $value) {
-                        $value = trim($value);
-                        if (!\preg_match('/^[a-zA-Z0-9_.-]+$/', $value)) {
-                            throw new \InvalidArgumentException('Invalid volume name "'.$value.'". Volume names can contain alphanumeric characters, and "_", ".", "-".');
-                        }
-                        return $value;
-                    });
+                    $question->setValidator(CommonValidators::getAlphaValidator(['_', '.', '-']));
                     $service->addNamedVolume($volumeName, $appDirectory.'/'.$uploadDirectory);
                 }
             }
@@ -192,7 +181,7 @@ class StartEventCommand extends EventCommand
             $question = new Question('Please enter the name of an additional extension you want to install (keep empty to skip): ', '');
             $question->setAutocompleterValues($availableExtensions);
             $question->setValidator(function (string $value) use ($availableExtensions) {
-                if (trim($value) !== '' && !\in_array($value, $availableExtensions)) {
+                if (trim($value) !== '' && !\in_array($value, $availableExtensions, true)) {
                     throw new \InvalidArgumentException('Unknown extension '.$value);
                 }
                 return trim($value);
@@ -211,7 +200,7 @@ class StartEventCommand extends EventCommand
         $memoryLimit = $this->getAentHelper()->question('PHP <info>memory limit</info> (keep empty to stay with the default 128M)')
             ->setHelpText('This value will be used in the memory_limit option of PHP via the PHP_INI_MEMORY_LIMIT environment variable.')
             ->setValidator(function (string $value) {
-                if (trim($value) !== '' && !\preg_match('/^[0-9]+([MGK])?$/i', $value)) {
+                if (trim($value) !== '' && !\preg_match('/^\d+([MGK])?$/i', $value)) {
                     throw new \InvalidArgumentException('Invalid value: '.$value);
                 }
                 return trim($value);
@@ -225,7 +214,7 @@ class StartEventCommand extends EventCommand
         $uploadMaxFileSize = $this->getAentHelper()->question('<info>Maximum file size for uploaded files</info> (keep empty to stay with the default 2M)')
             ->setHelpText('This value will be used in the upload_max_file_size and post_max_size options of PHP via the PHP_INI_UPLOAD_MAX_FILESIZE and PHP_INI_POST_MAX_SIZE environment variables.')
             ->setValidator(function (string $value) {
-                if (trim($value) !== '' && !\preg_match('/^[0-9]+([MGK])?$/i', $value)) {
+                if (trim($value) !== '' && !\preg_match('/^\d+([MGK])?$/i', $value)) {
                     throw new \InvalidArgumentException('Invalid value: '.$value);
                 }
                 return trim($value);
@@ -260,7 +249,7 @@ class StartEventCommand extends EventCommand
             // $commentEvents->dispatchNewVirtualHost($serviceName);
         }
 
-        $commentEvents->dispatchService($service);
+        CommonEvents::dispatchService($service);
         // $commentEvents->dispatchImage($service);
 
         return null;
