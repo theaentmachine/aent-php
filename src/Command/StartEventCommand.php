@@ -3,10 +3,10 @@
 namespace TheAentMachine\AentPhp\Command;
 
 use Symfony\Component\Console\Question\Question;
-use TheAentMachine\Aenthill\CommonMetadata;
 use TheAentMachine\Aenthill\CommonEvents;
-use TheAentMachine\Command\AbstractEventCommand;
+use TheAentMachine\Aenthill\CommonMetadata;
 use TheAentMachine\Aenthill\Pheromone;
+use TheAentMachine\Command\AbstractEventCommand;
 use TheAentMachine\Question\CommonValidators;
 use TheAentMachine\Registry\RegistryClient;
 use TheAentMachine\Service\Service;
@@ -98,16 +98,16 @@ class StartEventCommand extends AbstractEventCommand
                 $appDirectory = trim($appDirectory, '/') ?: '.';
                 $rootDir = Pheromone::getContainerProjectDirectory();
 
-                $fullDir = $rootDir.'/'.$appDirectory;
+                $fullDir = $rootDir . '/' . $appDirectory;
                 if (!is_dir($fullDir)) {
-                    throw new \InvalidArgumentException('Could not find directory '.Pheromone::getHostProjectDirectory().'/'.$appDirectory);
+                    throw new \InvalidArgumentException('Could not find directory ' . Pheromone::getHostProjectDirectory() . '/' . $appDirectory);
                 }
                 return $appDirectory;
             })->ask();
 
-        $this->output->writeln('<info>Your root PHP application directory is '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'</info>');
+        $this->output->writeln('<info>Your root PHP application directory is ' . Pheromone::getHostProjectDirectory() . '/' . $appDirectory . '</info>');
 
-        $service->addBindVolume('./'.$appDirectory, '/var/www/html');
+        $service->addBindVolume('./' . $appDirectory, '/var/www/html');
 
         /************************ Web application path **********************/
         if ($variant === 'apache') {
@@ -115,19 +115,19 @@ class StartEventCommand extends AbstractEventCommand
                 ->yesNoQuestion()->setDefault('y')->ask();
             if ($answer) {
                 $webDirectory = $this->getAentHelper()->question('Web directory (relative to the PHP application directory)')
-                    ->setHelpText('Your PHP application web directory is typically the directory that contains your index.php file. It must be relative to the PHP application directory ('.Pheromone::getHostProjectDirectory().'/'.$appDirectory.')')
+                    ->setHelpText('Your PHP application web directory is typically the directory that contains your index.php file. It must be relative to the PHP application directory (' . Pheromone::getHostProjectDirectory() . '/' . $appDirectory . ')')
                     ->setValidator(function (string $webDirectory) use ($appDirectory) {
                         $webDirectory = trim($webDirectory, '/') ?: '.';
                         $rootDir = Pheromone::getContainerProjectDirectory();
 
-                        $fullDir = $rootDir.'/'.$appDirectory.'/'.$webDirectory;
+                        $fullDir = $rootDir . '/' . $appDirectory . '/' . $webDirectory;
                         if (!is_dir($fullDir)) {
-                            throw new \InvalidArgumentException('Could not find directory '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'/'.$webDirectory);
+                            throw new \InvalidArgumentException('Could not find directory ' . Pheromone::getHostProjectDirectory() . '/' . $appDirectory . '/' . $webDirectory);
                         }
                         return $webDirectory;
                     })->ask();
                 $service->addImageEnvVariable('APACHE_DOCUMENT_ROOT', $webDirectory);
-                $this->output->writeln('<info>Your web directory is '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'/'.$webDirectory.'</info>');
+                $this->output->writeln('<info>Your web directory is ' . Pheromone::getHostProjectDirectory() . '/' . $appDirectory . '/' . $webDirectory . '</info>');
             }
         }
 
@@ -145,13 +145,13 @@ class StartEventCommand extends AbstractEventCommand
             $uploadDirectory = trim($uploadDirectory, '/');
             $rootDir = Pheromone::getContainerProjectDirectory();
             if ($uploadDirectory !== '') {
-                $fullDir = $rootDir.'/'.$appDirectory.'/'.$uploadDirectory;
+                $fullDir = $rootDir . '/' . $appDirectory . '/' . $uploadDirectory;
                 if (!is_dir($fullDir)) {
-                    $this->output->writeln('<error>Could not find directory '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'/'.$uploadDirectory.'</error>');
+                    $this->output->writeln('<error>Could not find directory ' . Pheromone::getHostProjectDirectory() . '/' . $appDirectory . '/' . $uploadDirectory . '</error>');
                     $uploadDirectory = null;
                 } else {
                     $uploadDirs[] = $uploadDirectory;
-                    $this->output->writeln('<info>Directory '.Pheromone::getHostProjectDirectory().'/'.$appDirectory.'/'.$uploadDirectory.' will be stored out of the container</info>');
+                    $this->output->writeln('<info>Directory ' . Pheromone::getHostProjectDirectory() . '/' . $appDirectory . '/' . $uploadDirectory . ' will be stored out of the container</info>');
 
                     $volumeName = $this->getAentHelper()
                         ->question('Please input directory (for instance for file uploads) that you want to mount out of the container? (keep empty to ignore)')
@@ -160,7 +160,7 @@ class StartEventCommand extends AbstractEventCommand
                         ->ask();
                     $question = new Question('What name should we use for this volume? ', '');
                     $question->setValidator(CommonValidators::getAlphaValidator(['_', '.', '-']));
-                    $service->addNamedVolume($volumeName, $appDirectory.'/'.$uploadDirectory);
+                    $service->addNamedVolume($volumeName, $appDirectory . '/' . $uploadDirectory);
                 }
             }
         } while ($uploadDirectory !== '');
@@ -173,7 +173,7 @@ class StartEventCommand extends AbstractEventCommand
         $this->output->writeln('By default, the following extensions are enabled:');
         $this->output->writeln('<info>apcu mysqli opcache pdo pdo_mysql redis zip soap mbstring ftp mysqlnd</info>');
         $this->output->writeln('You can select more extensions below:');
-        $this->output->writeln('<info>'.\implode(' ', $availableExtensions).'</info>');
+        $this->output->writeln('<info>' . \implode(' ', $availableExtensions) . '</info>');
 
         /************************ Extensions **********************/
         $extensions = [];
@@ -182,17 +182,17 @@ class StartEventCommand extends AbstractEventCommand
             $question->setAutocompleterValues($availableExtensions);
             $question->setValidator(function (string $value) use ($availableExtensions) {
                 if (trim($value) !== '' && !\in_array($value, $availableExtensions, true)) {
-                    throw new \InvalidArgumentException('Unknown extension '.$value);
+                    throw new \InvalidArgumentException('Unknown extension ' . $value);
                 }
                 return trim($value);
             });
             $extension = $this->getHelper('question')->ask($this->input, $this->output, $question);
             if ($extension !== '') {
-                $service->addImageEnvVariable('PHP_EXTENSION_'.\strtoupper($extension), '1');
+                $service->addImageEnvVariable('PHP_EXTENSION_' . \strtoupper($extension), '1');
                 $extensions[] = $extension;
             }
         } while ($extension !== '');
-        $this->output->writeln('<info>Enabled extensions: apcu mysqli opcache pdo pdo_mysql redis zip soap mbstring ftp mysqlnd '.\implode(' ', $extensions).'</info>');
+        $this->output->writeln('<info>Enabled extensions: apcu mysqli opcache pdo pdo_mysql redis zip soap mbstring ftp mysqlnd ' . \implode(' ', $extensions) . '</info>');
 
         /************************ php.ini settings **********************/
         $this->output->writeln("Now, let's customize some settings of <info>php.ini</info>.");
@@ -201,7 +201,7 @@ class StartEventCommand extends AbstractEventCommand
             ->setHelpText('This value will be used in the memory_limit option of PHP via the PHP_INI_MEMORY_LIMIT environment variable.')
             ->setValidator(function (string $value) {
                 if (trim($value) !== '' && !\preg_match('/^\d+([MGK])?$/i', $value)) {
-                    throw new \InvalidArgumentException('Invalid value: '.$value);
+                    throw new \InvalidArgumentException('Invalid value: ' . $value);
                 }
                 return trim($value);
             })
@@ -215,7 +215,7 @@ class StartEventCommand extends AbstractEventCommand
             ->setHelpText('This value will be used in the upload_max_file_size and post_max_size options of PHP via the PHP_INI_UPLOAD_MAX_FILESIZE and PHP_INI_POST_MAX_SIZE environment variables.')
             ->setValidator(function (string $value) {
                 if (trim($value) !== '' && !\preg_match('/^\d+([MGK])?$/i', $value)) {
-                    throw new \InvalidArgumentException('Invalid value: '.$value);
+                    throw new \InvalidArgumentException('Invalid value: ' . $value);
                 }
                 return trim($value);
             })
@@ -235,30 +235,41 @@ class StartEventCommand extends AbstractEventCommand
                 ->ask();
             if ($depend !== '') {
                 $service->addDependsOn($depend);
-                $this->output->writeln('<info>Added dependency: '.$depend.'</info>');
+                $this->output->writeln('<info>Added dependency: ' . $depend . '</info>');
             }
         } while ($depend !== '');
-        
-
 
         // TODO: propose to run composer install on startup?
 
         if ($variant === 'apache') {
             $service->addInternalPort(80);
             $service->setNeedVirtualHost(true);
-            // $commentEvents->dispatchNewVirtualHost($serviceName);
+        }
+
+        $answer = $this->getAentHelper()->question('Do you want to build an image of your project in the future ?')
+            ->yesNoQuestion()
+            ->compulsory()
+            ->ask();
+        if ($answer) {
+            $service->setNeedBuild(true);
+        }
+
+        $answer = $this->getAentHelper()->question('Do you want to deploy your project in the future ?')
+            ->yesNoQuestion()
+            ->compulsory()
+            ->ask();
+        if ($answer) {
+            $service->setNeedDeploy(true);
         }
 
         CommonEvents::dispatchService($service);
-        // $commentEvents->dispatchImage($service);
-
         return null;
     }
 
     /**
      * @return array[] An array with 3 keys: phpVersions, variants and nodeVersions
      */
-    private function getAvailableVersionParts() : array
+    private function getAvailableVersionParts(): array
     {
         $registryClient = new RegistryClient();
         $tags = $registryClient->getImageTagsOnDockerHub('thecodingmachine/php');
