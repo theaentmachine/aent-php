@@ -246,20 +246,12 @@ class StartEventCommand extends AbstractEventCommand
             $service->setNeedVirtualHost(true);
         }
 
-        $answer = $this->getAentHelper()->question('Do you want to build an image of your project in the future ?')
+        $needBuild = $this->getAentHelper()->question('Do you want to build an image of your project in the future?')
             ->yesNoQuestion()
             ->compulsory()
             ->ask();
-        if ($answer) {
+        if ($needBuild) {
             $service->setNeedBuild(true);
-        }
-
-        $answer = $this->getAentHelper()->question('Do you want to deploy your project in the future ?')
-            ->yesNoQuestion()
-            ->compulsory()
-            ->ask();
-        if ($answer) {
-            $service->setNeedDeploy(true);
         }
 
         CommonEvents::dispatchService($service);
