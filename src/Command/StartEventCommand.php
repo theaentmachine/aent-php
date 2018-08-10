@@ -133,7 +133,7 @@ class StartEventCommand extends AbstractEventCommand
         $uploadDirs = [];
         do {
             $uploadDirectory = $this->getAentHelper()
-                ->question('Please input directory (for instance for file uploads) that you want to mount out of the container? (keep empty to ignore)')
+                ->question('Please input directory (for instance for file uploads) that you want to mount out of the container? (keep empty to ignore)', false)
                 ->setDefault('')
                 ->ask();
             $uploadDirectory = trim($uploadDirectory, '/');
@@ -148,12 +148,10 @@ class StartEventCommand extends AbstractEventCommand
                     $this->output->writeln('<info>Directory ' . Pheromone::getHostProjectDirectory() . '/' . $appDirectory . '/' . $uploadDirectory . ' will be stored out of the container</info>');
 
                     $volumeName = $this->getAentHelper()
-                        ->question('Please input directory (for instance for file uploads) that you want to mount out of the container? (keep empty to ignore)')
+                        ->question('What name should we use for this volume? ')
                         ->compulsory()
                         ->setValidator(CommonValidators::getAlphaValidator(['_', '.', '-']))
                         ->ask();
-                    $question = new Question('What name should we use for this volume? ', '');
-                    $question->setValidator(CommonValidators::getAlphaValidator(['_', '.', '-']));
                     $service->addNamedVolume($volumeName, $appDirectory . '/' . $uploadDirectory);
                 }
             }
