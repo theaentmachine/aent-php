@@ -29,13 +29,7 @@ class StartEventCommand extends AbstractEventCommand
         $this->getAentHelper()->title('Adding a new PHP service');
 
         /************************ Environments **********************/
-        $environments = $this->getAentHelper()->getCommonQuestions()->askForEnvironments();
         $service = new Service();
-        if (null !== $environments) {
-            foreach ($environments as $env) {
-                $service->addDestEnvType($env[CommonMetadata::ENV_TYPE_KEY]);
-            }
-        }
 
         /************************ Service name **********************/
         $serviceName = $this->getAentHelper()->getCommonQuestions()->askForServiceName('app', 'Your PHP application');
@@ -139,7 +133,7 @@ class StartEventCommand extends AbstractEventCommand
         $uploadDirs = [];
         do {
             $uploadDirectory = $this->getAentHelper()
-                ->question('Please input directory (for instance for file uploads) that you want to mount out of the container? (keep empty to ignore)')
+                ->question('Please input directory (for instance for file uploads) that you want to mount out of the container? (keep empty to ignore)', false)
                 ->setDefault('')
                 ->ask();
             $uploadDirectory = trim($uploadDirectory, '/');
@@ -154,12 +148,10 @@ class StartEventCommand extends AbstractEventCommand
                     $this->output->writeln('<info>Directory ' . Pheromone::getHostProjectDirectory() . '/' . $appDirectory . '/' . $uploadDirectory . ' will be stored out of the container</info>');
 
                     $volumeName = $this->getAentHelper()
-                        ->question('Please input directory (for instance for file uploads) that you want to mount out of the container? (keep empty to ignore)')
+                        ->question('What name should we use for this volume? ')
                         ->compulsory()
                         ->setValidator(CommonValidators::getAlphaValidator(['_', '.', '-']))
                         ->ask();
-                    $question = new Question('What name should we use for this volume? ', '');
-                    $question->setValidator(CommonValidators::getAlphaValidator(['_', '.', '-']));
                     $service->addNamedVolume($volumeName, $appDirectory . '/' . $uploadDirectory);
                 }
             }
@@ -239,22 +231,25 @@ class StartEventCommand extends AbstractEventCommand
             }
         } while ($depend !== '');
 
-        // TODO: propose to run composer install on startup?
-
         if ($variant === 'apache') {
             $service->addInternalPort(80);
-            $service->setNeedVirtualHost(true);
+            $service->addVirtualHost(null, 80);
         }
 
-        $needBuild = $this->getAentHelper()->question('Do you want to build an image of your project in the future?')
-            ->yesNoQuestion()
-            ->compulsory()
-            ->ask();
-        if ($needBuild) {
-            $service->setNeedBuild(true);
-        }
+        $service->setNeedBuild(true);
 
-        CommonEvents::dispatchService($service);
+        // Let's run "composer install" on startup (for dev env) or in the image build (for test/prod env)
+        $devService = clone $service;
+        $devService->addDestEnvType(CommonMetadata::ENV_TYPE_DEV);
+        $devService->addContainerEnvVariable('STARTUP_COMMAND_1', 'composer install', 'This command will be automatically launched on container startup');
+
+        $prodService = clone $service;
+        $prodService->addDestEnvType(CommonMetadata::ENV_TYPE_TEST);
+        $prodService->addDestEnvType(CommonMetadata::ENV_TYPE_PROD);
+        $prodService->addDockerfileCommand('RUN composer install');
+
+        CommonEvents::dispatchService($devService);
+        CommonEvents::dispatchService($prodService);
         return null;
     }
 
