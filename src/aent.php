@@ -3,13 +3,8 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use TheAentMachine\AentApplication;
-use TheAentMachine\Command\CannotHandleAddEventCommand;
-use TheAentMachine\AentPhp\Command\StartEventCommand;
+use \TheAentMachine\Aent\ServiceAent;
+use \TheAentMachine\AentPhp\Event\AddEvent;
 
-$application = new AentApplication();
-
-$application->add(new CannotHandleAddEventCommand());
-$application->add(new StartEventCommand());
-
+$application = new ServiceAent("PHP Apache", new AddEvent());
 $application->run();
