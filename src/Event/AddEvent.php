@@ -34,7 +34,7 @@ final class AddEvent extends AbstractServiceAddEvent
         $service->setServiceName($this->prompt->getPromptHelper()->getServiceName());
         $service->setImage($this->getImage());
         $rootDirectoryVolume = $this->getRootDirectoryVolume();
-        $service->addBindVolume($rootDirectoryVolume->getSource(), $rootDirectoryVolume->getTarget());
+        $service->addBindVolume('./' . $rootDirectoryVolume->getSource(), $rootDirectoryVolume->getTarget());
         $apacheDocumentRoot = $this->getApacheDocumentRoot($rootDirectoryVolume->getSource());
         if (!empty($apacheDocumentRoot)) {
             $service->addImageEnvVariable('APACHE_DOCUMENT_ROOT', $apacheDocumentRoot);
@@ -130,7 +130,8 @@ final class AddEvent extends AbstractServiceAddEvent
     {
         $text = "\n<info>PHP application directory</info> (relative to the project root directory)";
         $helpText = "Your <info>PHP application directory</info> is typically the directory that contains your <info>composer.json file</info>. It must be relative to the project root directory.";
-        return $this->prompt->getPromptHelper()->getBindVolume($text, '/var/www/html', $helpText);
+        $source = $this->prompt->input($text, $helpText, null, true, ValidatorHelper::getRelativePathValidator()) ?? '';
+        return new BindVolume($source, '/var/www/html');
     }
 
     /**
@@ -147,7 +148,7 @@ final class AddEvent extends AbstractServiceAddEvent
             Pheromone::getHostProjectDirectory(),
             $rootDirectory
         );
-        return $this->prompt->input($text, $helpText, null, false, ValidatorHelper::getAlphaValidator()) ?? '';
+        return $this->prompt->input($text, $helpText, null, false, ValidatorHelper::getRelativePathValidator()) ?? '';
     }
 
     /**
@@ -162,9 +163,9 @@ final class AddEvent extends AbstractServiceAddEvent
         $namedVolumes = [];
         do {
             $text = "\nDirectory (relative to root directory) you want to mount out of the container (keep empty to skip)";
-            $dir = $this->prompt->input($text, null, null, false, ValidatorHelper::getAlphaValidator());
+            $dir = $this->prompt->input($text, null, null, false, ValidatorHelper::getRelativePathValidator());
             if (!empty($dir)) {
-                $namedVolumes[] = new NamedVolume($dir . '_data', $rootDirectory . '/' . $dir);
+                $namedVolumes[] = new NamedVolume($dir . '_data', "/var/www/html/$rootDirectory/$dir");
             }
         } while (!empty($dir));
         return $namedVolumes;
